@@ -41,8 +41,10 @@ class model_trainer:
         # Aquí definimos el modelo Random Forest
         # class_weight='balanced' es el truco para arreglar el desbalance sin usar SMOTE externo
         model = RandomForestClassifier(
-            n_estimators=100, 
-            random_state=42, 
+            n_estimators=300, 
+            random_state=42,
+            max_depth=10,
+            min_samples_leaf=5,
             class_weight='balanced' 
         )
 
@@ -58,7 +60,10 @@ class model_trainer:
 
         # 6. EVALUACIÓN
         print(">>> Paso 5: Evaluando el modelo...")
-        y_pred = self.pipeline.predict(X_test)
+        y_prob = self.pipeline.predict_proba(X_test)[:, 1]
+
+        umbral = 0.4
+        y_pred = (y_prob >= umbral).astype(int)
         
         print("\n--- REPORTE DE CLASIFICACIÓN ---")
         print(classification_report(y_test, y_pred))

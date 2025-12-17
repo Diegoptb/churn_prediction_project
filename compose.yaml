@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    # Construye la imagen usando el Dockerfile de la carpeta actual
+    build: . 
+    # Nombre del contenedor para identificarlo fácil
+    container_name: churn_predictor_container
+    # Mapeo de puertos: "PuertoPC:PuertoContenedor"
+    ports:
+      - "8501:8501"
+    # Variables de entorno (opcional, pero buena práctica)
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Montar el volumen permite que si cambias código en tu PC, 
+    # se actualice en el contenedor sin reconstruir (genial para desarrollo)
+    volumes:
+      - ./app:/app/app
+      - ./src:/app/src
+      - ./models:/app/models
+      - ./data:/app/data

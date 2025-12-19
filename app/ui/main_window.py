@@ -36,7 +36,7 @@ class MainWindow:
         with st.sidebar:
             st.header("Configuración")
             st.info("Este panel simula la entrada de datos de un CRM.")
-            st.write("Versión del Modelo: **v1.0 (Random Forest)**")
+            st.write("Versión del Modelo: **v2.0 (XGBoost)**")
 
     def _render_main_form(self):
         # Dividimos el formulario en secciones lógicas
@@ -99,24 +99,34 @@ class MainWindow:
             st.error(f"Error durante la predicción: {e}")
 
     def _display_result(self, probability):
-        st.divider()
-        st.subheader("📊 Resultados del Análisis")
-        
-        col_res1, col_res2 = st.columns([1, 2])
-        
-        with col_res1:
-            st.metric(label="Probabilidad de Fuga", value=f"{probability:.1%}")
-        
-        with col_res2:
-            # UMBRAL DEFINIDO EN NEGOCIO (0.40)
-            umbral = 0.40
+            st.divider()
+            st.subheader("📊 Resultados del Análisis")
             
-            if probability > umbral:
-                st.error("⚠️ ALERTA: RIESGO ALTO")
-                st.markdown(f"""
-                El cliente tiene una probabilidad superior al **{umbral*100}%** de abandonar la empresa.
-                **Acción recomendada:** Ofrecer descuento de retención o migrar a contrato anual.
-                """)
-            else:
-                st.success("✅ CLIENTE SEGURO")
-                st.markdown("El cliente no muestra riesgo inmediato de abandono.")
+            col_res1, col_res2 = st.columns([1, 2])
+            
+            # Cargar umbral óptimo dinámicamente
+            try:
+                with open('models/best_threshold.txt', 'r') as f:
+                    umbral_optimo = float(f.read())
+            except:
+                umbral_optimo = 0.45 # Fallback por si acaso
+            
+            with col_res1:
+                st.metric(label="Probabilidad de Fuga", value=f"{probability:.1%}")
+                st.caption(f"Umbral de decisión: {umbral_optimo:.1%}")
+            
+            with col_res2:
+                if probability > umbral_optimo:
+                    st.error("⚠️ ALERTA: RIESGO ALTO")
+                    st.markdown(f"""
+                    El modelo ha detectado patrones críticos de abandono.
+                    **Probabilidad:** {probability:.3f} > **Umbral:** {umbral_optimo:.3f}
+                    
+                    **Acción recomendada:** Activar protocolo de retención inmediata.
+                    """)
+                else:
+                    st.success("✅ CLIENTE SEGURO")
+                    st.markdown(f"""
+                    El cliente está por debajo del umbral de riesgo ({umbral_optimo:.3f}).
+                    No se requieren acciones inmediatas.
+                    """)
